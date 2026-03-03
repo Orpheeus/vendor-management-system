@@ -1,0 +1,9 @@
+# Entorno virtual
+venv/
+__pycache__/
+
+# Base de datos local
+ironclad_database.db
+
+# Archivos de VS Code
+.vscode/
