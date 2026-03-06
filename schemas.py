@@ -10,6 +10,7 @@ class ContractorCreate(BaseModel):
 # Lo que la API responde (Response)
 class Contractor(ContractorCreate):
     id: int
+    average_rating: float = 0.0 # <--- Lo que muestra el promedio
 
     class Config:
         from_attributes = True
