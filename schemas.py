@@ -29,3 +29,8 @@ class Review(ReviewCreate):
     
     class Config:
         from_attributes = True
+
+class ContractorUpdate(BaseModel):
+    company_name: Optional[str] = None
+    contact_name: Optional[str] = None
+    services: Optional[str] = None

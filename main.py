@@ -42,3 +42,40 @@ def create_review(review: schemas.ReviewCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(nueva_review)
     return nueva_review
+
+# Endpoint 4: Permite al usuario editar/borrar informacion
+@app.put("/contractors/{contractor_id}", response_model=schemas.Contractor)
+def update_contractor(contractor_id: int, contractor_data: schemas.ContractorUpdate, db: Session = Depends(get_db)):
+    # Busca al contratista por su ID
+    db_contractor = db.query(models.Contractor).filter(models.Contractor.id == contractor_id).first()
+
+    # Cuando no exista, lanza error 404
+    if not db_contractor:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Contratista no encontrado")
+    
+    # Actualizar solo los campos que el usuario envio
+    update_data = contractor_data.model_dump(exclude_unset=True) # Solo toma lo que no es None
+    for key, value in update_data.items():
+        setattr(db_contractor, key, value) # Esto es como hacer db_contractor.name = value
+
+    # Guardar cambios
+    db.commit()
+    db.refresh(db_contractor)
+    return db_contractor
+
+@app.delete("/contractors/{contractor_id}")
+def delete_contractor(contractor_id: int, db: Session = Depends(get_db)):
+    # Busca al contratista
+    db_contractor = db.query(models.Contractor).filter(models.Contractor.id == contractor_id).first()
+
+    # Cuando no exista, lanza error 404
+    if not db_contractor:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Contratista no encontrado")
+    
+    # Borrar la sesion y confirmar en la DB
+    db.delete(db_contractor)
+    db.commit()
+
+    return {"message": f"Contratista con ID {contractor_id} eliminado exitosamente."}

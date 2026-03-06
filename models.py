@@ -12,7 +12,7 @@ class Contractor(Base):
     services = Column(String)
 
     # Relacion con las evaluaciones
-    reviews = relationship("Review", back_populates="contractor")
+    reviews = relationship("Review", back_populates="contractor", lazy="selectin", cascade="all, delete-orphan")
 
     # LOGICA DEL PROMEDIO GENERAL
     @hybrid_property
