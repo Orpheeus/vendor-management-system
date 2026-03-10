@@ -34,3 +34,16 @@ class ContractorUpdate(BaseModel):
     company_name: Optional[str] = None
     contact_name: Optional[str] = None
     services: Optional[str] = None
+
+class UserCreate(BaseModel):
+    username: str
+    email: str
+    password: str # Password that the user enters
+
+class UserOut(BaseModel):
+    id: int
+    username: str
+    email: str
+
+    class Config:
+        from_attributes = True

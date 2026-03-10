@@ -1,8 +1,11 @@
 from fastapi import FastAPI, Depends
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine, Base
 import models
 import schemas
+import auth
+
 
 # Linea para asegurar que las tablas se creen al iniciar la app
 Base.metadata.create_all(bind=engine)
@@ -79,3 +82,40 @@ def delete_contractor(contractor_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": f"Contratista con ID {contractor_id} eliminado exitosamente."}
+
+@app.post("/users/", response_model=schemas.UserOut)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    # Hashear la contraseña antes de cualquier otra cosa
+    hashed_pwd = auth.get_password_hash(user.password) # <-- Hash
+
+    # Crea el objeto de usuario usando el hash, no la clave plana
+    db_user = models.User(
+        username=user.username,
+        email=user.email,
+        hashed_password=hashed_pwd
+    )
+
+    # Guarda en la base de datos
+    try:
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+    except Exception:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="El usuario o email ya existe") #TODO Cambia el idioma del texto a ingles
+    
+@app.post("/token")
+def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    # Busca al usuario por username
+    user = db.query(models.User).filter(models.User.username == form_data.username).first()
+
+    # Verifica si existe y si la contraseña es correcta
+    if not user or not auth.verify_password(form_data.password, user.hashed_password):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=401, detail="Incorrect username of password")
+    
+    # Si todo esta bien, fabricar el token
+    access_token = auth.create_acess_token(data={"sub": user.username})
+
+    return {"access_token": access_token, "token_type": "bearer"}

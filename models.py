@@ -62,3 +62,12 @@ class Review(Base):
                   self.reliability]
         valid_scores = [s for s in scores  if s is not None]
         return sum(valid_scores) / len(valid_scores) if valid_scores else 0.0
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False) 
+
